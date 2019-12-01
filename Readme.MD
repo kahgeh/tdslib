@@ -32,6 +32,6 @@ Packet - PreLogin
 
 # References
 
-1 Wireshark provide TDS inspection
-2 Specification - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-tds/b46a581a-39de-4745-b076-ec4dbb7d13ec
+1. Wireshark provide TDS inspection
+2. Specification - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-tds/b46a581a-39de-4745-b076-ec4dbb7d13ec
 
