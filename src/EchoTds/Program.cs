@@ -5,7 +5,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using TdsLib.Message;
+using TdsLib.Packets;
+using TdsLib.StateMachine;
 
 namespace Echotds
 {
@@ -50,25 +51,7 @@ namespace Echotds
                     }
 
                     var socket = acceptTask.Result;
-                    byte[] bytes = new byte[1024];
-                    var receiveTask = socket.ReceiveAsync(bytes, SocketFlags.None);
-                    await Task.WhenAny(receiveTask, _stop.WaitAsync());
-                    if (receiveTask.Status != TaskStatus.RanToCompletion)
-                    {
-                        break;
-                    }
-                    var receivedByteCount = receiveTask.Result;
-                    Console.WriteLine($"Received {receivedByteCount} bytes:");
-                    bytes.HexDump();
-                    using (var stream = new MemoryStream(bytes))
-                    using (var reader = new BinaryReader(stream))
-                    {
-                        var request = TdsStream.Read(reader);
-                        Console.WriteLine(request.ToString());
-                    }
-
-                    //await socket.SendAsync(bytes, SocketFlags.None);
-                    socket.Close();
+                    await HandleSession(socket);
                 }
             }
             catch (Exception e)
@@ -76,6 +59,30 @@ namespace Echotds
                 Console.WriteLine(e.ToString());
             }
         }
+
+        private static async Task HandleSession(Socket socket)
+        {
+            byte[] bytes = new byte[1024];
+            var session = new Session();
+
+            Func<Task<(int, byte[])>> getBytes = async () =>
+            {
+                var bytes = new byte[4096];
+                var receiveTask = socket.ReceiveAsync(bytes, SocketFlags.None);
+                await Task.WhenAny(receiveTask, session.WaitForCancelSignal());
+                if (receiveTask.Status != TaskStatus.RanToCompletion)
+                {
+                    return (-1, null);
+                }
+                var receivedByteCount = receiveTask.Result;
+                return (receivedByteCount, bytes);
+            };
+
+            await session.Serve(getBytes);
+            socket.Close();
+        }
+
+
 
         public static int Main(String[] args)
         {
