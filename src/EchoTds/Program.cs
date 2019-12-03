@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using TdsLib.Message;
+using Dapper;
+using TdsLib.StateMachine;
 
 namespace Echotds
 {
@@ -14,8 +15,15 @@ namespace Echotds
     public class Server
     {
         // Thread signal.  
-        static SemaphoreSlim _stop = new SemaphoreSlim(1, 1);
-        static ManualResetEvent _allDone = new ManualResetEvent(false);
+        static CancellationTokenSource _terminate;
+        static ManualResetEvent _allDone;
+        static Task _terminateTask;
+        static Server()
+        {
+            _terminate = new CancellationTokenSource();
+            _terminateTask = Task.Delay(TimeSpan.FromMilliseconds(-1), _terminate.Token);
+            _allDone = new ManualResetEvent(false);
+        }
         public Server()
         {
         }
@@ -42,33 +50,17 @@ namespace Echotds
 
                     // Start an asynchronous socket to listen for connections.  
                     Console.WriteLine("Waiting for a connection...");
-                    var acceptTask = listener.AcceptAsync();
-                    await Task.WhenAny(acceptTask, _stop.WaitAsync());
-                    if (acceptTask.Status != TaskStatus.RanToCompletion)
+                    try
                     {
-                        break;
+                        var acceptTask = listener.AcceptAsync();
+                        await Task.WhenAny(acceptTask, _terminateTask);
+                        var socket = acceptTask.Result;
+                        await HandleSession(socket);
                     }
-
-                    var socket = acceptTask.Result;
-                    byte[] bytes = new byte[1024];
-                    var receiveTask = socket.ReceiveAsync(bytes, SocketFlags.None);
-                    await Task.WhenAny(receiveTask, _stop.WaitAsync());
-                    if (receiveTask.Status != TaskStatus.RanToCompletion)
+                    catch (OperationCanceledException)
                     {
-                        break;
+                        Console.WriteLine("Termination signal received");
                     }
-                    var receivedByteCount = receiveTask.Result;
-                    Console.WriteLine($"Received {receivedByteCount} bytes:");
-                    bytes.HexDump();
-                    using (var stream = new MemoryStream(bytes))
-                    using (var reader = new BinaryReader(stream))
-                    {
-                        var request = TdsStream.Read(reader);
-                        Console.WriteLine(request.ToString());
-                    }
-
-                    //await socket.SendAsync(bytes, SocketFlags.None);
-                    socket.Close();
                 }
             }
             catch (Exception e)
@@ -77,9 +69,39 @@ namespace Echotds
             }
         }
 
+        private static async Task HandleSession(Socket socket)
+        {
+            var session = new Session();
+
+            Func<CancellationToken, Task<(int, byte[])>> getBytes = async (CancellationToken cancellationToken) =>
+            {
+                var bytes = new byte[4096];
+                var receivedByteCount = await socket
+                                    .ReceiveAsync(bytes, SocketFlags.None, cancellationToken)
+                                    .AsTask();
+
+                return (receivedByteCount, bytes);
+            };
+
+            Func<byte[], CancellationToken, Task<int>> sendBytes = async (byte[] bytes, CancellationToken cancellationToken) =>
+            {
+                var sentByteCount = await socket
+                                    .SendAsync(bytes, SocketFlags.None, cancellationToken)
+                                    .AsTask();
+
+                return sentByteCount;
+            };
+
+            await session.Serve(
+                getBytes,
+                sendBytes,
+                _terminate.Token);
+
+            socket.Close();
+        }
+
         public static int Main(String[] args)
         {
-            _stop.WaitAsync();
             _allDone.Reset();
             Listen()
                 .ContinueWith((task) =>
@@ -93,6 +115,13 @@ namespace Echotds
             try
             {
                 connection.Open();
+
+                var param = new DynamicParameters();
+                param.Add("@param1", 0);
+                param.Add("@param2", "text");
+                param.Add("@Export", true);
+
+                var sampleData = connection.Query<SampleData>("[dbo].[StoredProcedure1]", commandType: CommandType.StoredProcedure, param: param);
                 connection.Close();
             }
             catch (Exception)
@@ -101,7 +130,7 @@ namespace Echotds
             }
             Console.WriteLine("\nPress ENTER to end...");
             Console.Read();
-            _stop.Release();
+            _terminate.Cancel();
             _allDone.WaitOne();
             Console.WriteLine("\nend");
             return 0;
