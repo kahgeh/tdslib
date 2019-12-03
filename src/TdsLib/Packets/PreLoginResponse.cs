@@ -65,5 +65,11 @@ namespace TdsLib.Packets
             bytes.AddRange(Data);
             return bytes.ToArray();
         }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}\n" +
+                   Options.GetDisplayString();
+        }
     }
 }

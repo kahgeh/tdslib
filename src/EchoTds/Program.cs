@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using TdsLib.Packets;
 using TdsLib.StateMachine;
 
 namespace Echotds
@@ -15,8 +13,15 @@ namespace Echotds
     public class Server
     {
         // Thread signal.  
-        static SemaphoreSlim _stop = new SemaphoreSlim(1, 1);
-        static ManualResetEvent _allDone = new ManualResetEvent(false);
+        static CancellationTokenSource _terminate;
+        static ManualResetEvent _allDone;
+        static Task _terminateTask;
+        static Server()
+        {
+            _terminate = new CancellationTokenSource();
+            _terminateTask = Task.Delay(TimeSpan.FromMilliseconds(-1), _terminate.Token);
+            _allDone = new ManualResetEvent(false);
+        }
         public Server()
         {
         }
@@ -43,15 +48,17 @@ namespace Echotds
 
                     // Start an asynchronous socket to listen for connections.  
                     Console.WriteLine("Waiting for a connection...");
-                    var acceptTask = listener.AcceptAsync();
-                    await Task.WhenAny(acceptTask, _stop.WaitAsync());
-                    if (acceptTask.Status != TaskStatus.RanToCompletion)
+                    try
                     {
-                        break;
+                        var acceptTask = listener.AcceptAsync();
+                        await Task.WhenAny(acceptTask, _terminateTask);
+                        var socket = acceptTask.Result;
+                        await HandleSession(socket);
                     }
-
-                    var socket = acceptTask.Result;
-                    await HandleSession(socket);
+                    catch (OperationCanceledException)
+                    {
+                        Console.WriteLine("Termination signal received");
+                    }
                 }
             }
             catch (Exception e)
@@ -65,28 +72,22 @@ namespace Echotds
             byte[] bytes = new byte[1024];
             var session = new Session();
 
-            Func<Task<(int, byte[])>> getBytes = async () =>
+            Func<CancellationToken, Task<(int, byte[])>> getBytes = async (CancellationToken cancellationToken) =>
             {
                 var bytes = new byte[4096];
-                var receiveTask = socket.ReceiveAsync(bytes, SocketFlags.None);
-                await Task.WhenAny(receiveTask, session.WaitForCancelSignal());
-                if (receiveTask.Status != TaskStatus.RanToCompletion)
-                {
-                    return (-1, null);
-                }
-                var receivedByteCount = receiveTask.Result;
+                var receivedByteCount = await socket
+                                    .ReceiveAsync(bytes, SocketFlags.None, cancellationToken)
+                                    .AsTask();
+
                 return (receivedByteCount, bytes);
             };
 
-            await session.Serve(getBytes);
+            await session.Serve(getBytes, _terminate.Token);
             socket.Close();
         }
 
-
-
         public static int Main(String[] args)
         {
-            _stop.WaitAsync();
             _allDone.Reset();
             Listen()
                 .ContinueWith((task) =>
@@ -108,7 +109,7 @@ namespace Echotds
             }
             Console.WriteLine("\nPress ENTER to end...");
             Console.Read();
-            _stop.Release();
+            _terminate.Cancel();
             _allDone.WaitOne();
             Console.WriteLine("\nend");
             return 0;

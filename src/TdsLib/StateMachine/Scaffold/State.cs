@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using TdsLib.Errors;
 using TdsLib.Packets;
 
 namespace TdsLib.StateMachine.Scaffold
@@ -11,10 +12,17 @@ namespace TdsLib.StateMachine.Scaffold
     {
         public IEnumerable<Link> Links { get; set; }
         public IEnumerable<PacketType> AllowPacketTypes { get; set; }
-        public async Task<TdsReadResult> WaitForInput(Func<Task<(int, byte[])>> getBytes)
+        public async Task<TdsReadResult> WaitForInput(Func<CancellationToken, Task<(int, byte[])>> getBytes,
+            CancellationToken cancellationToken)
         {
-            var (byteCount, bytes) = await getBytes();
-
+            var (byteCount, bytes) = await getBytes(cancellationToken);
+            if (byteCount < 1)
+            {
+                return new TdsReadResult
+                {
+                    Error = new NothingReturned()
+                };
+            }
             Array.Resize(ref bytes, byteCount);
             return TdsStream.Read(bytes, AllowPacketTypes);
         }

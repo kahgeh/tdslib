@@ -5,7 +5,7 @@ namespace TdsLib.Packets
 {
     public class TdsReadResult
     {
-        public PacketError Error { get; set; }
+        public TdsLibError Error { get; set; }
         public RequestPacket Packet { get; set; }
         public byte RawType { get; set; }
         public PacketType? Type { get; set; }

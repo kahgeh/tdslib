@@ -31,7 +31,7 @@ namespace TdsLib.Packets
         {
             RequestPacket packet = null;
             PacketType? type = null;
-            if (Enum.IsDefined(typeof(PacketType), raw))
+            if (Enum.IsDefined(typeof(PacketType), Convert.ToInt32(raw)))
             {
                 type = (PacketType)raw;
                 packet = CreatePacket(type.Value);

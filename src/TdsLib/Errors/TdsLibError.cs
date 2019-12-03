@@ -1,10 +1,12 @@
+using TdsLib.StateMachine.Scaffold;
+
 namespace TdsLib.Errors
 {
-    public class PacketError
+    public class TdsLibError : IResult
     {
         public string Message { get; }
 
-        public PacketError(string message)
+        public TdsLibError(string message)
         {
             Message = message;
         }

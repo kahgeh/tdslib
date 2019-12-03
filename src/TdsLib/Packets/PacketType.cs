@@ -7,18 +7,18 @@ namespace TdsLib.Packets
 {
     public enum PacketType
     {
-        SqlBatch = 1,
-        PreTds7Login = 2,
+        SqlBatch = 0x01,
+        PreTds7Login = 0x02,
 
-        Rpc = 3,
-        TabularResult = 4,
-        AttentionSignal = 6,
-        BulkLoadData = 7,
-        FederatedAuthenticationToken = 8,
-        TransactionManagerRequest = 14,
-        Tds7Login = 16,
-        Sspi = 17,
-        PreLogin = 18,
+        Rpc = 0x03,
+        TabularResult = 0x04,
+        AttentionSignal = 0x06,
+        BulkLoadData = 0x07,
+        FederatedAuthenticationToken = 0x08,
+        TransactionManagerRequest = 0x0e,
+        Tds7Login = 0x10,
+        Sspi = 0x11,
+        PreLogin = 0x12,
     }
 
     public static class PacketTypeExtensions

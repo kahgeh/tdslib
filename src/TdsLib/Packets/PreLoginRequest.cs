@@ -5,7 +5,7 @@ namespace TdsLib.Packets
 {
     public class PreLoginRequest : RequestPacket
     {
-        PreLoginMessage Message { get; set; }
+        public PreLoginMessage Message { get; set; }
         public PreLoginRequest() :
             base(PacketType.PreLogin)
         {

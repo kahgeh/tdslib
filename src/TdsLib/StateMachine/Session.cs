@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using TdsLib.Errors;
@@ -12,6 +13,7 @@ namespace TdsLib.StateMachine
 {
     public class Session
     {
+        public UInt32 ClientThreadId { get; set; }
         public DateTime StartUtc { get; }
         public long PacketCount { get; set; }
 
@@ -20,6 +22,7 @@ namespace TdsLib.StateMachine
         private SemaphoreSlim _stop = new SemaphoreSlim(1, 1);
         public Session()
         {
+            Socket socket1;
             StartUtc = DateTime.UtcNow;
         }
 
@@ -30,10 +33,15 @@ namespace TdsLib.StateMachine
             var login = new Login();
 
             var end = new End();
-            preLogin.Links = new[] { new Link { ResultName = nameof(PreLoginResponse), NextState = login } };
-            preLogin.Links = new[] { new Link { ResultName = nameof(InvalidTokenDetected), NextState = end } };
+            preLogin.Links = new[] {
+                new Link { ResultName = nameof(PreLoginResponse), NextState = login },
+                new Link { ResultName = nameof(InvalidTokenDetected), NextState = end }
+             };
 
-            login.Links = new[] { new Link { ResultName = nameof(LoginResponse), NextState = end } };
+            login.Links = new[] {
+                new Link { ResultName = nameof(LoginResponse), NextState = end },
+                new Link { ResultName = nameof(NothingReturned), NextState = login }
+                };
             return preLogin;
         }
 
@@ -41,18 +49,24 @@ namespace TdsLib.StateMachine
 
         public void Cancel() => _stop.Release();
 
-        public async Task Serve(Func<Task<(int, byte[])>> getBytes)
+        public async Task Serve(
+            Func<CancellationToken, Task<(int, byte[])>> getBytes,
+            CancellationToken cancellationToken)
         {
-            var session = new Session();
 
             var first = Setup();
             var state = first;
 
             while (true)
             {
-                var result = await state.WaitForInput(getBytes);
-
-                var output = (LastResult = state.Execute(result, session));
+                Console.WriteLine($"\n{state.GetType().Name} state is waiting for input");
+                var result = await state.WaitForInput(getBytes, cancellationToken);
+                Console.WriteLine($"Received {JsonSerializer.Serialize(result)}");
+                if (result.Error == null)
+                {
+                    Console.Write($"\nPacket received  \n{result.Packet.ToString()}");
+                }
+                var output = (LastResult = state.Execute(result, this));
                 if (output is InvalidTokenDetected)
                 {
                     break;
@@ -65,13 +79,20 @@ namespace TdsLib.StateMachine
                     throw new NextStateNotFound(state, resultName);
                 }
 
+                if (output is Packet)
+                {
+                    Console.Write($"\nResponding with \n{((Packet)output).ToString()}");
+                }
+
                 if (link.NextState is End)
                 {
+                    LastResult = new Completed();
                     break;
                 }
 
                 state = link.NextState;
             }
+            Console.WriteLine($"Session finished running, last state was {state.GetType().Name}");
         }
     }
 }

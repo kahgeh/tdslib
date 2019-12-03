@@ -4,7 +4,7 @@ using TdsLib.StateMachine.Scaffold;
 
 namespace TdsLib.Errors
 {
-    public class InvalidTokenDetected : PacketError, IResult
+    public class InvalidTokenDetected : TdsLibError
     {
         public IEnumerable<PacketType> AllowedPacketTypes { get; }
         public byte Raw { get; }
