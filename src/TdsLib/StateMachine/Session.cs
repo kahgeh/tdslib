@@ -32,14 +32,14 @@ namespace TdsLib.StateMachine
 
             var login = new Login();
 
-            var end = new End();
+            var final = new Final();
             preLogin.Links = new[] {
                 new Link { ResultName = nameof(PreLoginResponse), NextState = login },
-                new Link { ResultName = nameof(InvalidTokenDetected), NextState = end }
+                new Link { ResultName = nameof(InvalidTokenDetected), NextState = final }
              };
 
             login.Links = new[] {
-                new Link { ResultName = nameof(LoginResponse), NextState = end },
+                new Link { ResultName = nameof(LoginResponse), NextState = final },
                 new Link { ResultName = nameof(NothingReturned), NextState = login }
                 };
             return preLogin;
@@ -51,6 +51,7 @@ namespace TdsLib.StateMachine
 
         public async Task Serve(
             Func<CancellationToken, Task<(int, byte[])>> getBytes,
+            Func<byte[], CancellationToken, Task<int>> sendBytes,
             CancellationToken cancellationToken)
         {
 
@@ -81,10 +82,12 @@ namespace TdsLib.StateMachine
 
                 if (output is Packet)
                 {
+                    var responsePacket = (Packet)output;
                     Console.Write($"\nResponding with \n{((Packet)output).ToString()}");
+                    await sendBytes(responsePacket.ToBytes(), cancellationToken);
                 }
 
-                if (link.NextState is End)
+                if (link.NextState is Final)
                 {
                     LastResult = new Completed();
                     break;

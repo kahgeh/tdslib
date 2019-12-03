@@ -33,8 +33,8 @@ namespace TdsLib.Packets.Options
 
         public override string ToString()
         {
-            return $"\n{base.ToString()}" +
-                $"{Indent}Id: {Id}";
+            return $"{base.ToString()}" +
+                $"{Indent}Id: {Id}\n";
         }
     }
 }

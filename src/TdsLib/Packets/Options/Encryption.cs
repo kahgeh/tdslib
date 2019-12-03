@@ -27,8 +27,8 @@ namespace TdsLib.Packets.Options
 
         public override string ToString()
         {
-            return $"\n{base.ToString()}" +
-                $"{Indent}Option: {Enum.GetName(typeof(EncryptionOption), Option)}";
+            return $"{base.ToString()}" +
+                $"{Indent}Option: {Enum.GetName(typeof(EncryptionOption), Option)}\n";
         }
     }
 }

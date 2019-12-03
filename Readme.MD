@@ -6,6 +6,7 @@ It's 2019 and there's still no mock utility for Sql Server. This is an attempt t
 
 ## Done
 1. Auth Handshake - Able to read first PreLogin request
+2. Auth Handshake - Send dummy PreLogin response ( with encryption not supported - to prevent tls exchange)
 
 e.g.
 ```
@@ -25,10 +26,9 @@ Packet - PreLogin
 ```
 
 # Next
-1. Auth Handshake - Send first PreLogin response
-2. Auth Handshake - Read more PreLogin request
-3. Auth Handshake - Send login ack response
-4. Read SQL Batch
+1. Auth Handshake - Read login request
+2. Auth Handshake - Send login ack response
+3. Read SQL Batch
 
 # References
 

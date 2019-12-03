@@ -47,7 +47,7 @@ namespace TdsLib.Packets
     public abstract class RequestPacket : Packet
     {
         public PacketState State { get; set; }
-        public abstract void Load(BinaryReader reader, int callIndex);
+        public abstract void Load(BinaryReader reader);
 
         protected RequestPacket(PacketType type) : base(type)
         {

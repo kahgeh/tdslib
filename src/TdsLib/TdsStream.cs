@@ -35,7 +35,7 @@ namespace TdsLib.Packets
             {
                 type = (PacketType)raw;
                 packet = CreatePacket(type.Value);
-                packet.Load(reader, 0);
+                packet.Load(reader);
             }
 
             return (packet, type);

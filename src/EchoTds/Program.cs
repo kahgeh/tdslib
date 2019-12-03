@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Dapper;
 using TdsLib.StateMachine;
 
 namespace Echotds
@@ -69,7 +71,6 @@ namespace Echotds
 
         private static async Task HandleSession(Socket socket)
         {
-            byte[] bytes = new byte[1024];
             var session = new Session();
 
             Func<CancellationToken, Task<(int, byte[])>> getBytes = async (CancellationToken cancellationToken) =>
@@ -82,7 +83,20 @@ namespace Echotds
                 return (receivedByteCount, bytes);
             };
 
-            await session.Serve(getBytes, _terminate.Token);
+            Func<byte[], CancellationToken, Task<int>> sendBytes = async (byte[] bytes, CancellationToken cancellationToken) =>
+            {
+                var sentByteCount = await socket
+                                    .SendAsync(bytes, SocketFlags.None, cancellationToken)
+                                    .AsTask();
+
+                return sentByteCount;
+            };
+
+            await session.Serve(
+                getBytes,
+                sendBytes,
+                _terminate.Token);
+
             socket.Close();
         }
 
@@ -101,6 +115,13 @@ namespace Echotds
             try
             {
                 connection.Open();
+
+                var param = new DynamicParameters();
+                param.Add("@param1", 0);
+                param.Add("@param2", "text");
+                param.Add("@Export", true);
+
+                var sampleData = connection.Query<SampleData>("[dbo].[StoredProcedure1]", commandType: CommandType.StoredProcedure, param: param);
                 connection.Close();
             }
             catch (Exception)

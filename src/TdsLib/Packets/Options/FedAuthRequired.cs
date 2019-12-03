@@ -23,8 +23,8 @@ namespace TdsLib.Packets.Options
 
         public override string ToString()
         {
-            return $"\n{base.ToString()}" +
-                $"{Indent}Required: {Required}";
+            return $"{base.ToString()}" +
+                $"{Indent}Required: {Required}\n";
         }
     }
 }

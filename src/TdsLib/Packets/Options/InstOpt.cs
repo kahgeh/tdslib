@@ -38,8 +38,8 @@ namespace TdsLib.Packets.Options
         public override string ToString()
         {
             var serverName = string.IsNullOrEmpty(ServerName) ? "<empty>" : ServerName;
-            return $"\n{base.ToString()}" +
-                $"{Indent}ServerName: {serverName}";
+            return $"{base.ToString()}" +
+                $"{Indent}ServerName: {serverName}\n";
         }
 
     }

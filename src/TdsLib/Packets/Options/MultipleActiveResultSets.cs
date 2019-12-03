@@ -25,8 +25,8 @@ namespace TdsLib.Packets.Options
 
         public override string ToString()
         {
-            return $"\n{base.ToString()}" +
-                $"{Indent}Enabled: {Enabled}";
+            return $"{base.ToString()}" +
+                $"{Indent}Enabled: {Enabled}\n";
         }
     }
 }

@@ -12,15 +12,12 @@ namespace TdsLib.Packets
 
         }
 
-        public override void Load(BinaryReader reader, int callIndex)
+        public override void Load(BinaryReader reader)
         {
             ReadHeader(reader);
-            if (callIndex == 0)
-            {
-                Message = new OptionsMessage();
-                Message.Read(reader);
-                State = PacketState.Valid;
-            }
+            Message = new OptionsMessage();
+            Message.Read(reader);
+            State = PacketState.Valid;
 
         }
 

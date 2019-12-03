@@ -30,8 +30,8 @@ namespace TdsLib.Packets.Options
 
         public override string ToString()
         {
-            return $"\n{base.ToString()}" +
-                $"{Indent}Id: {Id.GetHexText()}";
+            return $"{base.ToString()}" +
+                $"{Indent}Id: {Id.GetHexText()}\n";
         }
     }
 }
