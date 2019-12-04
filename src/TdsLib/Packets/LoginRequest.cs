@@ -1,16 +1,17 @@
 using System.IO;
+using TdsLib.Errors;
 
 namespace TdsLib.Packets
 {
     public class LoginRequest : RequestPacket
     {
-        public LoginRequest(PacketType type)
+        public LoginRequest()
             : base(PacketType.Tds7Login)
         {
 
         }
 
-        public override void Load(BinaryReader reader)
+        protected override IncompletePacket ReadBody(BinaryReader reader)
         {
             throw new System.NotImplementedException();
         }

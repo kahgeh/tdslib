@@ -22,7 +22,6 @@ namespace TdsLib.StateMachine
         private SemaphoreSlim _stop = new SemaphoreSlim(1, 1);
         public Session()
         {
-            Socket socket1;
             StartUtc = DateTime.UtcNow;
         }
 

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using TdsLib.Packets;
-using TdsLib.StateMachine.Scaffold;
 
 namespace TdsLib.Errors
 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TdsLib.Errors;
+using TdsLib.Exceptions;
 
 namespace TdsLib.Packets
 {
@@ -10,6 +11,9 @@ namespace TdsLib.Packets
     {
         public static TdsReadResult Read(byte[] bytes, IEnumerable<PacketType> allowedPacketTypes)
         {
+            // todo : what if the bytes is incomplete
+            // - return an Incomplete error ( retaining related bytes of partially read section)
+            // - each RequestPacket should have loading states 
             using (var stream = new MemoryStream(bytes))
             using (var reader = new BinaryReader(stream))
             {
@@ -35,7 +39,11 @@ namespace TdsLib.Packets
             {
                 type = (PacketType)raw;
                 packet = CreatePacket(type.Value);
-                packet.Load(reader);
+                var incompletePacket = packet.Load(reader);
+                if (incompletePacket != null)
+                {
+                    throw new TdsLibException(incompletePacket);
+                }
             }
 
             return (packet, type);
@@ -47,6 +55,8 @@ namespace TdsLib.Packets
             {
                 case PacketType.PreLogin:
                     return new PreLoginRequest();
+                case PacketType.Tds7Login:
+                    return new LoginRequest();
                 default:
                     throw new System.Exception("Type unexpected");
             }

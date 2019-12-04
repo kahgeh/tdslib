@@ -112,10 +112,11 @@ namespace Echotds
                 });
             var connectionString = "Encrypt=false;Application Name=EchoTds;data source=127.0.0.1,1432;initial catalog=DummyDb;User ID=DummyUser;Password=Dummy!1;persist security info=False;packet size=4096;";
             var connection = new SqlConnection(connectionString);
+
             try
             {
-                connection.Open();
 
+                connection.Open();
                 var param = new DynamicParameters();
                 param.Add("@param1", 0);
                 param.Add("@param2", "text");
@@ -126,7 +127,7 @@ namespace Echotds
             }
             catch (Exception)
             {
-                Console.WriteLine("Error openning sql connection");
+                Console.WriteLine($"Error openning sql connection (id={connection.ClientConnectionId})");
             }
             Console.WriteLine("\nPress ENTER to end...");
             Console.Read();

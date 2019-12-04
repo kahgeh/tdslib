@@ -13,9 +13,8 @@ namespace TdsLib.Packets
 
     public enum PacketState
     {
-        Empty,
-        Partial,
-        Valid,
-        Invalid
+        Empty = 0,
+        Valid = 100,
+        Invalid = 101
     }
 }

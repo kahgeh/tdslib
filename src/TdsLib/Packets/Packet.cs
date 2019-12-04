@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using TdsLib.Errors;
 using TdsLib.Utility;
 
 namespace TdsLib.Packets
@@ -46,24 +48,57 @@ namespace TdsLib.Packets
 
     public abstract class RequestPacket : Packet
     {
-        public PacketState State { get; set; }
-        public abstract void Load(BinaryReader reader);
+        public Dictionary<string, byte> LoadingProgresses { get; }
+        public byte LoadingProgress { get; set; }
 
         protected RequestPacket(PacketType type) : base(type)
         {
-            State = PacketState.Empty;
+            LoadingProgresses = new Dictionary<string, byte> { { nameof(ReadHeader), 0x01 } };
+            LoadingProgress = (byte)PacketState.Empty;
         }
 
-        protected BinaryReader ReadHeader(BinaryReader reader)
+        public IncompletePacket Load(BinaryReader reader)
         {
-            Status = reader.ReadByte();
-            State = PacketState.Partial;
+            IncompletePacket incompletePacket;
 
-            Length = reader.ReadReverseUInt16();
-            Channel = reader.ReadReverseUInt16();
-            PacketNumber = reader.ReadByte();
-            Window = reader.ReadByte();
-            return reader;
+            if ((incompletePacket = reader.ReadSection(
+                this,
+                LoadingProgress,
+                ReadHeader)) != null)
+            {
+                return incompletePacket;
+            }
+
+            if ((incompletePacket = ReadBody(reader)) != null)
+            {
+                return incompletePacket;
+            }
+
+            return null;
         }
+
+        protected abstract IncompletePacket ReadBody(BinaryReader reader);
+
+        private Action<BinaryReader> ReadHeader => (reader) =>
+         {
+             Status = reader.ReadByte();
+             Length = reader.ReadReverseUInt16();
+             Channel = reader.ReadReverseUInt16();
+             PacketNumber = reader.ReadByte();
+             Window = reader.ReadByte();
+             LoadingProgress = LoadingProgresses[nameof(ReadHeader)];
+         };
+
+        public (string packetName, int totalSteps, string stepName, byte loadingProgress) GetLoadingProgress()
+        {
+            var totalStep = LoadingProgresses.Count();
+            var stepName = LoadingProgresses
+                            .Where(kvp => kvp.Value == LoadingProgress)
+                            .First()
+                            .Key;
+            return (GetType().Name, totalStep, stepName, LoadingProgress);
+        }
+
+
     }
 }
