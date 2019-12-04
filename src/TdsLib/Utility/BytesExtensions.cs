@@ -29,6 +29,10 @@ namespace TdsLib.Utility
                     Console.Write("\n");
                 }
             }
+            if (byteCnt % 16 != 0)
+            {
+                Console.Write("\n");
+            }
         }
 
         public static string GetHexText(this byte[] bytes)
