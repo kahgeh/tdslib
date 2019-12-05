@@ -20,7 +20,7 @@ namespace TdsLib.Packets
             Data = new Data[]{
                 new TextVariable(Variable.HostName),
                 new TextVariable(Variable.UserName),
-                new TextVariable(Variable.Password),
+                new Password(),
                 new TextVariable(Variable.AppName),
                 new TextVariable(Variable.ServerName),
                 new TextVariable(Variable.Reserved),
