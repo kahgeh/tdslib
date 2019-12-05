@@ -6,7 +6,7 @@ namespace TdsLib.Packets.Login7
 {
     public class Header
     {
-        private string Indent { get { return "   "; } }
+        private string Indent { get { return "    "; } }
         public UInt32 Length { get; set; }
         public UInt32 TDSVersion { get; set; }
         public UInt32 PacketSize { get; set; }
@@ -53,11 +53,11 @@ namespace TdsLib.Packets.Login7
                 $"{Indent}{nameof(ConnectionID)}: {ConnectionID}\n" +
                 OptionFlags1.ToString(true) +
                 OptionFlags1.ToString() +
-                $"{nameof(OptionFlags2)}: 0x{OptionFlags2.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n" +
-                $"{nameof(TypeFlags)}: 0x{TypeFlags.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n" +
-                $"{nameof(ReservedFlags)}: 0x{ReservedFlags.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n" +
-                $"{nameof(TimeZone)}: 0x{TimeZone.ToString("x").PadLeft(8, '0').Substring(0, 8)}\n" +
-                $"{nameof(Collation)}: 0x{Collation.ToString("x").PadLeft(8, '0').Substring(0, 8)}\n";
+                $"{Indent}{nameof(OptionFlags2)}: 0x{OptionFlags2.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n" +
+                $"{Indent}{nameof(TypeFlags)}: 0x{TypeFlags.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n" +
+                $"{Indent}{nameof(ReservedFlags)}: 0x{ReservedFlags.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n" +
+                $"{Indent}{nameof(TimeZone)}: 0x{TimeZone.ToString("x").PadLeft(8, '0').Substring(0, 8)}\n" +
+                $"{Indent}{nameof(Collation)}: 0x{Collation.ToString("x").PadLeft(8, '0').Substring(0, 8)}\n";
         }
 
     }

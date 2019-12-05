@@ -23,7 +23,7 @@ namespace TdsLib.Packets.Login7
 
         public override string ToString()
         {
-            return $"{Indent}{Enum.GetName(typeof(VariableNames), Name)}: {Value}\n";
+            return $"{Indent}{Enum.GetName(typeof(VariableNames), Name)}: {(string.IsNullOrEmpty(Value) ? "<empty>" : Value)}\n";
         }
     }
 }

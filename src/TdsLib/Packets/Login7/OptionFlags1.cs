@@ -7,7 +7,7 @@ namespace TdsLib.Packets.Login7
 {
     public class OptionFlags1
     {
-        private string Indent { get { return "    "; } }
+        private string Indent { get { return "      "; } }
         public ByteOrder ByteOrder { get; set; }
         public CharType Char { get; set; }
         public FloatType Float { get; set; }
@@ -36,7 +36,7 @@ namespace TdsLib.Packets.Login7
         {
             if (raw)
             {
-                return $"{nameof(OptionFlags1)} : 0x{_raw.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n";
+                return $"    {nameof(OptionFlags1)} : 0x{_raw.ToString("x").PadLeft(2, '0').Substring(0, 2)}\n";
             }
             return ToString();
         }

@@ -17,6 +17,7 @@ namespace TdsLib.Packets
         public LoginRequest()
             : base(PacketType.Tds7Login)
         {
+            LoadingProgresses.Add(nameof(ReadBody), 0x02);
             Data = new Data[]{
                 new TextVariable(Variable.HostName),
                 new TextVariable(Variable.UserName),
@@ -34,6 +35,11 @@ namespace TdsLib.Packets
             var lengthBytes = reader.ReadBytes(4);
             var length = BitConverter.ToUInt32(lengthBytes);
             var Raw = lengthBytes.Concat(reader.ReadBytes((int)length)).ToArray();//todo ensure it's safe to cast
+            if (Raw.Length != length)
+            {
+                return new IncompletePacket(Raw, this);
+            }
+            LoadingProgress = LoadingProgresses[nameof(ReadBody)];
             using (var stream = new MemoryStream(Raw))
             using (var bodyReader = new BinaryReader(stream))
             {
@@ -50,14 +56,15 @@ namespace TdsLib.Packets
             {
                 datum.Read(Raw);
             }
-            Console.WriteLine($"****{ToString()}");
             return null;
         }
 
         public override string ToString()
         {
             return $"{base.ToString()}\n" +
-                   $"{Header.ToString()}\n" +
+                   $"  Data Header\n" +
+                   $"{Header.ToString()}" +
+                   $"  Data\n" +
                    $"{Data.GetDisplayText()}\n";
         }
     }
