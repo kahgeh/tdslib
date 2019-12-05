@@ -4,15 +4,15 @@ using TdsLib.Utility;
 
 namespace TdsLib.Packets.Login7
 {
-    public class DataPointer
+    public class OffsetLength
     {
         public UInt16 Offset { get; set; }
         public UInt16 Length { get; set; }
 
         public void Read(BinaryReader reader)
         {
-            Offset = reader.ReadReverseUInt16();
-            Length = reader.ReadReverseUInt16();
+            Offset = reader.ReadUInt16();
+            Length = reader.ReadUInt16();
         }
     }
 }

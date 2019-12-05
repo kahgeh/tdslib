@@ -21,6 +21,11 @@ namespace TdsLib.Packets.Login7
         public UInt32 TimeZone { get; set; }
         public UInt32 Collation { get; set; }
 
+        public Header(UInt32 length)
+        {
+            Length = length;
+        }
+
         public void Read(BinaryReader reader)
         {
             Length = reader.ReadUInt32();
