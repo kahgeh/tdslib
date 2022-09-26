@@ -1,11 +1,18 @@
 using System;
 using System.Text;
+using VariableName = TdsLib.Packets.Login7.VariableNames;
+
 
 namespace TdsLib.Packets.Login7
 {
     public class Password : Data
     {
         public string Value { get; set; }
+
+        public Password() : base(VariableName.Password)
+        {
+
+        }
         public override void Read(byte[] data)
         {
             var dataSpan = new Span<byte>(data);

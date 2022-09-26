@@ -74,14 +74,14 @@ namespace Echotds
             var session = new Session();
 
             Func<CancellationToken, Task<(int, byte[])>> getBytes = async (CancellationToken cancellationToken) =>
-            {
-                var bytes = new byte[4096];
-                var receivedByteCount = await socket
-                                    .ReceiveAsync(bytes, SocketFlags.None, cancellationToken)
-                                    .AsTask();
+             {
+                 var bytes = new byte[4096];
+                 var receivedByteCount = await socket
+                                     .ReceiveAsync(bytes, SocketFlags.None, cancellationToken)
+                                     .AsTask();
 
-                return (receivedByteCount, bytes);
-            };
+                 return (receivedByteCount, bytes);
+             };
 
             Func<byte[], CancellationToken, Task<int>> sendBytes = async (byte[] bytes, CancellationToken cancellationToken) =>
             {

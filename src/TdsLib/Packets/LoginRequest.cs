@@ -5,7 +5,7 @@ using System.Linq;
 using TdsLib.Errors;
 using TdsLib.Packets.Login7;
 using TdsLib.Utility;
-using Variable = TdsLib.Packets.Login7.VariableNames;
+using static TdsLib.Packets.Login7.VariableNames;
 
 namespace TdsLib.Packets
 {
@@ -19,15 +19,15 @@ namespace TdsLib.Packets
         {
             LoadingProgresses.Add(nameof(ReadBody), 0x02);
             Data = new Data[]{
-                new TextVariable(Variable.HostName),
-                new TextVariable(Variable.UserName),
+                new TextVariable(HostName),
+                new TextVariable(UserName),
                 new Password(),
-                new TextVariable(Variable.AppName),
-                new TextVariable(Variable.ServerName),
-                new TextVariable(Variable.Reserved),
-                new TextVariable(Variable.LibraryName),
-                new TextVariable(Variable.Locale),
-                new TextVariable(Variable.DatabaseName)
+                new TextVariable(AppName),
+                new TextVariable(ServerName),
+                new TextVariable(Reserved),
+                new TextVariable(LibraryName),
+                new TextVariable(Locale),
+                new TextVariable(DatabaseName)
             };
         }
         protected override IncompletePacket ReadBody(BinaryReader reader)

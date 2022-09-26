@@ -6,12 +6,10 @@ namespace TdsLib.Packets.Login7
 {
     public class TextVariable : Data
     {
-        public VariableName Name { get; }
         public string Value { get; set; }
 
-        public TextVariable(VariableName name) : base()
+        public TextVariable(VariableName name) : base(name)
         {
-            Name = name;
         }
 
         public override void Read(byte[] data)
