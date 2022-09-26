@@ -12,7 +12,8 @@ namespace TdsLib.StateMachine.Scaffold
     {
         public IEnumerable<Link> Links { get; set; }
         public IEnumerable<PacketType> AllowPacketTypes { get; set; }
-        public async Task<TdsReadResult> WaitForInput(Func<CancellationToken, Task<(int, byte[])>> getBytes,
+        public async Task<TdsReadResult> WaitForInput(
+            Func<CancellationToken, Task<(int, byte[])>> getBytes,
             CancellationToken cancellationToken)
         {
             var (byteCount, bytes) = await getBytes(cancellationToken);

@@ -8,21 +8,27 @@ using TdsLib.Errors;
 using TdsLib.Exceptions;
 using TdsLib.Packets;
 using TdsLib.StateMachine.Scaffold;
+using TdsLib.Utility;
 
 namespace TdsLib.StateMachine
 {
     public class Session
     {
+        public UInt32 PacketSize { get; set; }
         public UInt32 ClientThreadId { get; set; }
         public DateTime StartUtc { get; }
         public long PacketCount { get; set; }
 
+        public string ClientHostName { get; set; }
+        public string UserName { get; set; }
+        public string AppName { get; set; }
         public IResult LastResult { get; set; }
 
         private SemaphoreSlim _stop = new SemaphoreSlim(1, 1);
         public Session()
         {
             StartUtc = DateTime.UtcNow;
+            PacketSize = 4096;
         }
 
         private State Setup()
@@ -82,7 +88,12 @@ namespace TdsLib.StateMachine
                 if (output is Packet)
                 {
                     var responsePacket = (Packet)output;
-                    Console.Write($"\nResponding with \n{((Packet)output).ToString()}");
+                    Console.Write($"\nResponding with \n{responsePacket.ToString()}\n");
+                    if (output is LoginResponse)
+                    {
+                        responsePacket.ToBytes().HexDump();
+                    }
+
                     await sendBytes(responsePacket.ToBytes(), cancellationToken);
                 }
 
